@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 
 function App() {
   return (
-    <Box sx={{ height: "100vh", width: "100vw", backgroundColor: "grey" }}>
+    <Box>
       <Home />
     </Box>
   );

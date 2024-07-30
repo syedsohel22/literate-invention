@@ -1,7 +1,13 @@
 import { Box } from "@mui/material";
 
+import RequestTabs from "../components/RequestTabs";
+
 const Home = () => {
-  return <Box sx={{ height: "100vh", width: "100vw" }}></Box>;
+  return (
+    <Box>
+      <RequestTabs />
+    </Box>
+  );
 };
 
 export default Home;

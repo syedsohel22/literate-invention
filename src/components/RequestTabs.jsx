@@ -32,11 +32,62 @@ const RequestTabs = () => {
     setIsLoading(true);
     setError(null);
     setResponse(null);
+
     try {
-      const res = await axios[requestType](url);
-      setResponse(res.data);
+      // Start the timer
+      const startTime = performance.now();
+
+      // Construct query params string
+      const queryParams = params
+        .reduce((acc, param) => {
+          if (param.key) {
+            acc.append(param.key, param.value);
+          }
+          return acc;
+        }, new URLSearchParams())
+        .toString();
+
+      // Construct headers object
+      const headersObj = headers.reduce((acc, header) => {
+        if (header.key) {
+          acc[header.key] = header.value;
+        }
+        return acc;
+      }, {});
+
+      const requestUrl = queryParams ? `${url}?${queryParams}` : url;
+
+      const res = await axios({
+        method: requestType,
+        url: requestUrl,
+        headers: headersObj,
+        data: body, // only for POST, PUT, PATCH methods
+      });
+
+      // Calculate response time
+      const endTime = performance.now();
+      const responseTime = endTime - startTime;
+
+      // Calculate response size
+      const responseSize = new Blob([JSON.stringify(res.data)]).size;
+
+      // Get status code
+      const statusCode = res.status;
+
+      // Update the state with response data
+      setResponse({
+        data: res.data,
+        time: responseTime,
+        size: responseSize,
+        status: statusCode,
+      });
     } catch (error) {
-      setError(error);
+      setError({
+        message: error.message,
+        time: null,
+        size: null,
+        status: error.response?.status || null,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -165,6 +216,39 @@ const RequestTabs = () => {
               </TabPanel>
             </Box>
           </Box>
+          {/* Displaying API information */}
+          {response && (
+            <Box
+              mt={2}
+              sx={{
+                display: "flex",
+                gap: "10px",
+                alignItems: "center",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Typography variant="body2">Status: {response.status}</Typography>
+              <Typography variant="body2">
+                Time: {response.time.toFixed(2)} ms
+              </Typography>
+              <Typography variant="body2">
+                Size: {response.size} bytes
+              </Typography>
+            </Box>
+          )}
+
+          {error && (
+            <Box mt={2}>
+              <Typography variant="body2" color="error">
+                Error: {error.message}
+              </Typography>
+              {error.status && (
+                <Typography variant="body2" color="error">
+                  Status: {error.status}
+                </Typography>
+              )}
+            </Box>
+          )}
           <FormControl fullWidth sx={{ marginTop: "10px" }}>
             <TextField
               multiline
